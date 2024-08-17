@@ -1,12 +1,25 @@
+import { getUser } from "@/actions/db";
+import { useEffect } from "react";
 
-import New from '@/components/New';
-import TopNav from '@/components/TopNav';
-import Link from 'next/link';
+
 
 export default function Tournaments() {
 
 	let isLogged = true;
 
+	useEffect(() => {
+		const fetchUser = async () => {
+		  try {
+			const data = await getUser('1');
+			console.log(data);
+		  } catch (error) {
+			console.error('Error fetching user from API');
+		  }
+		};	
+		fetchUser();
+	}, []);
+	
+	
 	return (
 		<div className='mx-auto gap-3 flex my-10 flex-col max-w-screen-lg w-full'>
 			<div className='flex w-full opacity-40'>
@@ -21,6 +34,7 @@ export default function Tournaments() {
 				<div className='flex w-full'>Max 🏆</div>
 				<div className='flex w-full'>1/10</div>
 			</div>
+			
 		</div>
 	)
 }

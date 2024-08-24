@@ -8,7 +8,7 @@ function Ws() {
   useEffect(() => {
     ws.current = new WebSocket('ws://localhost:8000/ws/test/');
 
-    ws.current.onmessage = (event) => {
+    ws.current.onmessage = (event: any) => {
       console.log('Received message:', event.data);
     };
 

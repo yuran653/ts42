@@ -31,7 +31,7 @@ export default function Home() {
     };
 
     return (
-        <div className='w-full gap-4 flex flex-col mx-4 my-4'>
+        <div className='w-full gap-4 flex flex-col'>
 
 			{isLogged && <div className='mx-auto gap-12 flex flex-row opacity-80'>
 					<Link href='#' onClick={() => handleTabClick('newgame')} className='hover:opacity-70'>New game</Link>

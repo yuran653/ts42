@@ -1,14 +1,29 @@
-# run
+== run
+make up / build / down
+or
 docker-compose -f ./docker-compose.yml up -d
 
-# use
+== use
 localhost:8000
 localhost:3000
+
+== back
+game/ws path: django / myapp / consumers.py
+
+работает на беке, возвращает 2 координаты на фронт (мяча)
+добавится координата соперника
+
+== front
+localhost:3000 -> websockets in menu
+canvas/ws path:
+next-js / components / New.js
+
+с фронта передается лишь 1 цифра с позицией X игрока
 
 https://circumeo.io/blog/entry/django-websockets/
 
 
-поля бд
+== db schema
 
 class Users(models.Model):
 	name = models.CharField(max_length=100)
@@ -27,17 +42,3 @@ class Games(models.Model):
 	updated_at = models.DateTimeField(auto_now=True)
 	status = models.CharField(max_length=100)
 
-
-далее
-
-- настроить loginUser и тд на фронте, решить что делать с jwt, использовать ли сторонний модуль, также и по куки
-
-- отрисовать двигающийся квадрат на фронте
-
-- аутентификация с почтой
-
-- аутентификация с oauth
-
-- дописать логику игры
-
-- вывести что нужно на фронт, протестить моб.

@@ -10,9 +10,9 @@ function New() {
   const [squareX, setSquareX] = useState(0);
   const [squareY, setSquareY] = useState(0);
   const [paddleY, setPaddleY] = useState(200); // Начальная позиция ракетки
-  const squareSize = 5;
-  const paddleWidth = 10;
-  const paddleHeight = 60;
+  const squareSize = 2;
+  const paddleWidth = 2;
+  const paddleHeight = 50;
   const screen = { w: 780, h: 400 }
 
   const drawSquare = useCallback((x: number, y: number) => {
@@ -22,15 +22,15 @@ function New() {
       context.clearRect(0, 0, canvas.width, canvas.height);
       context.fillRect(x, y, squareSize, squareSize);
       // Рисуем ракетку
-      context.fillRect(0, paddleY, paddleWidth, paddleHeight);
+      context.fillRect(0, paddleY - paddleHeight/2, paddleWidth, paddleHeight);
     }
   }, [squareSize, paddleY]);
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     if (event.key === 'ArrowUp') {
-      setPaddleY((prev) => Math.max(0, prev - 10));
+      setPaddleY((prev) => Math.max(0 + paddleHeight/2, prev - 10));
     } else if (event.key === 'ArrowDown') {
-      setPaddleY((prev) => Math.min(screen.h - paddleHeight, prev + 10));
+      setPaddleY((prev) => Math.min(screen.h - paddleHeight/2, prev + 10));
     }
   }, [screen.h]);
 
@@ -52,7 +52,7 @@ function New() {
     };
 
     client.onmessage = (message) => {
-      console.log('Received message:', message.data);
+    //   console.log('Received message:', message.data);
       const [x, y] = (message.data as string).split(',').map(Number);
       setSquareX(x);
       setSquareY(y);
@@ -95,7 +95,8 @@ function New() {
   useEffect(() => {
     // Отправляем новую позицию ракетки на сервер
     if (clientRef.current && clientRef.current.readyState === clientRef.current.OPEN) {
-      clientRef.current.send(`paddle_position:${paddleY}`);
+		// console.log('Sending paddleY:', paddleY);
+    	clientRef.current.send(paddleY);
     }
   }, [paddleY]);
 

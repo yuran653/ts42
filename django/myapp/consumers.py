@@ -11,8 +11,8 @@ class TestConsumer(AsyncWebsocketConsumer):
 		self.screen_height = 400
 		self.ball_x = self.screen_width / 2
 		self.ball_y = self.screen_height / 2
-		self.move_x = 10  # Увеличьте значение для ускорения
-		self.move_y = 10  # Увеличьте значение для ускорения
+		self.move_x = 8  # Увеличьте значение для ускорения
+		self.move_y = 6  # Увеличьте значение для ускорения
 		self.raquet_1 = self.screen_height / 2
 
 		# Запуск задачи для обновления состояния мяча
@@ -31,15 +31,19 @@ class TestConsumer(AsyncWebsocketConsumer):
 
 	async def update_ball_position(self):
 		while True:
-			# Мяч попал в ракетку
-			if (self.ball_x < 1 or self.ball_x > self.screen_width - 1):
+			# ball hit the raquet
+			# ... or self.ball_x > self.screen_width - 1
+			if self.ball_x < 1: 
 				if self.ball_y >= self.raquet_1 - 25 and self.ball_y <= self.raquet_1 + 25:
 					self.move_x *= -1
 				else:
 					self.ball_x = self.screen_width / 2
 					self.ball_y = self.screen_height / 2
+					
+			if self.ball_x > self.screen_width - 1:
+				self.move_x *= -1
 
-			# Логика движения мяча
+			# jump from up and down
 			if self.ball_y >= self.screen_height or self.ball_y <= 0:
 				self.move_y *= -1
 
@@ -48,11 +52,11 @@ class TestConsumer(AsyncWebsocketConsumer):
 			self.ball_y += self.move_y
 			self.ball_x += self.move_x
 
-			# Формирование строки с координатами
+			# coordinates
 			self.count = f"{self.ball_x},{self.ball_y}"
 
-			# Отправка данных через WebSocket
+			# send to websocket
 			await self.send(text_data=self.count)
 
-			# Задержка для обновления
-			await asyncio.sleep(0.04)  # Уменьшите значение для ускорения обновлений
+			# delay before update
+			await asyncio.sleep(0.03)  # Уменьшите значение для ускорения обновлений

@@ -4,107 +4,150 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { w3cwebsocket as W3CWebSocket } from 'websocket';
 
 function New() {
-  const clientRef = useRef<W3CWebSocket | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const contextRef = useRef<CanvasRenderingContext2D | null>(null);
-  const [squareX, setSquareX] = useState(0);
-  const [squareY, setSquareY] = useState(0);
-  const [paddleY, setPaddleY] = useState(200); // Начальная позиция ракетки
-  const squareSize = 2;
-  const paddleWidth = 2;
-  const paddleHeight = 50;
-  const screen = { w: 780, h: 400 }
+	const clientRef = useRef<W3CWebSocket | null>(null);
+	const canvasRef = useRef<HTMLCanvasElement | null>(null);
+	const contextRef = useRef<CanvasRenderingContext2D | null>(null);
+	const [squareX, setSquareX] = useState(0);
+	const [squareY, setSquareY] = useState(0);
+	const [paddle1Y, setPaddle1Y] = useState(200); // Начальная позиция ракетки
+	const [paddle2Y, setPaddle2Y] = useState(200); // Начальная позиция ракетки
+	const squareSize = 2;
+	const paddleWidth = 2;
+	const paddleHeight = 50;
+	const screen = { w: 780, h: 400 }
+	const [pressedKeys, setPressedKeys] = useState<{ [key: string]: boolean }>({});
 
-  const drawSquare = useCallback((x: number, y: number) => {
-    const canvas = canvasRef.current;
-    const context = contextRef.current;
-    if (canvas && context) {
-      context.clearRect(0, 0, canvas.width, canvas.height);
-      context.fillRect(x, y, squareSize, squareSize);
-      // Рисуем ракетку
-      context.fillRect(0, paddleY - paddleHeight/2, paddleWidth, paddleHeight);
-    }
-  }, [squareSize, paddleY]);
 
-  const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    if (event.key === 'ArrowUp') {
-      setPaddleY((prev) => Math.max(0 + paddleHeight/2, prev - 10));
-    } else if (event.key === 'ArrowDown') {
-      setPaddleY((prev) => Math.min(screen.h - paddleHeight/2, prev + 10));
-    }
-  }, [screen.h]);
+	const drawSquare = useCallback((x: number, y: number) => {
+		const canvas = canvasRef.current;
+		const context = contextRef.current;
+		if (canvas && context) {
+		context.clearRect(0, 0, canvas.width, canvas.height);
+		context.fillRect(x, y, squareSize, squareSize);
+		// Рисуем ракетку
+		context.fillRect(0, paddle1Y - paddleHeight/2, paddleWidth, paddleHeight);
+		context.fillRect(screen.w-paddleWidth, paddle2Y - paddleHeight/2, paddleWidth, paddleHeight);
+		}
+	}, [squareSize, paddle1Y, paddle2Y, screen.w]);
 
-  useEffect(() => {
-    const client = new W3CWebSocket('ws://localhost:8000/test/');
+	const handleKeyDown = useCallback((event: KeyboardEvent) => {
+		setPressedKeys((prevKeys) => ({
+		  ...prevKeys,
+		  [event.key]: true,
+		}));
+	  }, []);
+	  
+	  const handleKeyUp = useCallback((event: KeyboardEvent) => {
+		setPressedKeys((prevKeys) => ({
+		  ...prevKeys,
+		  [event.key]: false,
+		}));
+	  }, []);
+	  
+	  useEffect(() => {
+		window.addEventListener('keydown', handleKeyDown);
+		window.addEventListener('keyup', handleKeyUp);
+	  
+		return () => {
+		  window.removeEventListener('keydown', handleKeyDown);
+		  window.removeEventListener('keyup', handleKeyUp);
+		};
+	  }, [handleKeyDown, handleKeyUp]);
+	  
+	  useEffect(() => {
+		let newPaddle1Y = paddle1Y;
+		let newPaddle2Y = paddle2Y;
+	  
+		if (pressedKeys['q'] || pressedKeys['Q']) {
+		  newPaddle1Y = Math.max(0 + paddleHeight/2, newPaddle1Y - 0.1);
+		}
+		if (pressedKeys['a'] || pressedKeys['A']) {
+		  newPaddle1Y = Math.min(screen.h - paddleHeight/2, newPaddle1Y + 0.1);
+		}
+		if (pressedKeys['ArrowUp']) {
+		  newPaddle2Y = Math.max(0 + paddleHeight/2, newPaddle2Y - 0.1);
+		}
+		if (pressedKeys['ArrowDown']) {
+		  newPaddle2Y = Math.min(screen.h - paddleHeight/2, newPaddle2Y + 0.1);
+		}
+	  
+		setPaddle1Y(newPaddle1Y);
+		setPaddle2Y(newPaddle2Y);
+	  }, [pressedKeys, paddle1Y, paddle2Y, screen.h, paddleHeight]);
+	  
 
-    client.onopen = () => {
-      console.log('WebSocket Client Connected ✅');
-      startUpdatingSquarePosition();
-    };
+	useEffect(() => {
+		const client = new W3CWebSocket('ws://localhost:8000/test/');
 
-    const startUpdatingSquarePosition = () => {
-      if (clientRef.current && clientRef.current.readyState === clientRef.current.OPEN) {
-        clientRef.current.send('get_position');
-        setTimeout(startUpdatingSquarePosition, 100);
-      } else {
-        console.log('Cannot update square position: WebSocket is not open');
-      }
-    };
+		client.onopen = () => {
+		console.log('WebSocket Client Connected ✅');
+		startUpdatingSquarePosition();
+		};
 
-    client.onmessage = (message) => {
-    //   console.log('Received message:', message.data);
-      const [x, y] = (message.data as string).split(',').map(Number);
-      setSquareX(x);
-      setSquareY(y);
-    };
+		const startUpdatingSquarePosition = () => {
+			if (clientRef.current && clientRef.current.readyState === clientRef.current.OPEN) {
+				clientRef.current.send('get_position');
+				setTimeout(startUpdatingSquarePosition, 100);
+			} else {
+				console.log('Cannot update square position: WebSocket is not open');
+			}
+		};
 
-    client.onerror = (error) => {
-      console.log('WebSocket Error:', error);
-    };
+		client.onmessage = (message) => {
+			//   console.log('Received message:', message.data);
+			const [x, y] = (message.data as string).split(',').map(Number);
+			setSquareX(x);
+			setSquareY(y);
+		};
 
-    client.onclose = (event) => {
-      console.log('WebSocket Closed:', event);
-      console.log('Close code:', event.code);
-      console.log('Close reason:', event.reason);
-    };
+		client.onerror = (error) => {
+			console.log('WebSocket Error:', error);
+		};
 
-    clientRef.current = client;
+		client.onclose = (event) => {
+			console.log('WebSocket Closed:', event);
+			console.log('Close code:', event.code);
+			console.log('Close reason:', event.reason);
+		};
 
-    // Setup canvas
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const context = canvas.getContext('2d');
-      if (context) {
-        contextRef.current = context;
-      }
-    }
+		clientRef.current = client;
 
-    // Добавляем обработчик клавиатуры
-    window.addEventListener('keydown', handleKeyDown);
+		// Setup canvas
+		const canvas = canvasRef.current;
+			if (canvas) {
+			const context = canvas.getContext('2d');
+			if (context) {
+				contextRef.current = context;
+			}
+		}
 
-    return () => {
-      client.close();
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [handleKeyDown]);
+		// Добавляем обработчик клавиатуры
+		window.addEventListener('keydown', handleKeyDown);
 
-  useEffect(() => {
-    drawSquare(squareX, squareY);
-  }, [squareX, squareY, drawSquare]);
+		return () => {
+			client.close();
+			window.removeEventListener('keydown', handleKeyDown);
+		};
+	}, [handleKeyDown]);
 
-  useEffect(() => {
-    // Отправляем новую позицию ракетки на сервер
-    if (clientRef.current && clientRef.current.readyState === clientRef.current.OPEN) {
-		// console.log('Sending paddleY:', paddleY);
-    	clientRef.current.send(paddleY);
-    }
-  }, [paddleY]);
+	useEffect(() => {
+		drawSquare(squareX, squareY);
+	}, [squareX, squareY, drawSquare]);
 
-  return (
-    <div>
-      <canvas ref={canvasRef} width={screen.w} height={screen.h} className='bg-white w-full h-auto'/>
-    </div>
-  );
+	useEffect(() => {
+		// Отправляем новую позицию ракетки на сервер
+		if (clientRef.current && clientRef.current.readyState === clientRef.current.OPEN) {
+			// console.log('Sending paddleY:', paddleY);
+			// округлить paddle1Y до целого числа
+			clientRef.current.send(Math.round(paddle1Y)+','+Math.round(paddle2Y))
+		}
+	}, [paddle1Y, paddle2Y]);
+
+	return (
+		<div>
+		<canvas ref={canvasRef} width={screen.w} height={screen.h} className='bg-white w-full h-auto'/>
+		</div>
+	);
 }
 
 export default New;

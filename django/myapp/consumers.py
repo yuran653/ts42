@@ -14,6 +14,7 @@ class TestConsumer(AsyncWebsocketConsumer):
 		self.move_x = 8  # Увеличьте значение для ускорения
 		self.move_y = 6  # Увеличьте значение для ускорения
 		self.raquet_1 = self.screen_height / 2
+		self.raquet_2 = self.screen_height / 2
 
 		# Запуск задачи для обновления состояния мяча
 		self.update_task = asyncio.create_task(self.update_ball_position())
@@ -25,7 +26,9 @@ class TestConsumer(AsyncWebsocketConsumer):
 	async def receive(self, text_data):
 		# Принимаем данные от клиента
 		try:
-			self.raquet_1 = int(text_data)
+			raquet_1, raquet_2 = map(int, text_data.split(','))
+			self.raquet_1 = int(raquet_1)
+			self.raquet_2 = int(raquet_2)
 		except ValueError:
 			pass  # Игнорировать некорректные данные
 
@@ -33,15 +36,22 @@ class TestConsumer(AsyncWebsocketConsumer):
 		while True:
 			# ball hit the raquet
 			# ... or self.ball_x > self.screen_width - 1
-			if self.ball_x < 1: 
+			if self.ball_x < 3: 
 				if self.ball_y >= self.raquet_1 - 25 and self.ball_y <= self.raquet_1 + 25:
 					self.move_x *= -1
 				else:
 					self.ball_x = self.screen_width / 2
 					self.ball_y = self.screen_height / 2
+			
+			if self.ball_x > self.screen_width - 3:
+				if self.ball_y >= self.raquet_2 - 25 and self.ball_y <= self.raquet_2 + 25:
+					self.move_x *= -1
+				else:
+					self.ball_x = self.screen_width / 2
+					self.ball_y = self.screen_height / 2
 					
-			if self.ball_x > self.screen_width - 1:
-				self.move_x *= -1
+			# if self.ball_x > self.screen_width - 1:
+			# 	self.move_x *= -1
 
 			# jump from up and down
 			if self.ball_y >= self.screen_height or self.ball_y <= 0:

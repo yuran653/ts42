@@ -9,6 +9,8 @@ function New() {
 	const contextRef = useRef<CanvasRenderingContext2D | null>(null);
 	const [squareX, setSquareX] = useState(0);
 	const [squareY, setSquareY] = useState(0);
+	const [score1, setScore1] = useState(0);
+	const [score2, setScore2] = useState(0);
 	const [paddle1Y, setPaddle1Y] = useState(200); // Начальная позиция ракетки
 	const [paddle2Y, setPaddle2Y] = useState(200); // Начальная позиция ракетки
 	const squareSize = 2;
@@ -95,9 +97,11 @@ function New() {
 
 		client.onmessage = (message) => {
 			//   console.log('Received message:', message.data);
-			const [x, y] = (message.data as string).split(',').map(Number);
+			const [x, y, score1, score2] = (message.data as string).split(',').map(Number);
 			setSquareX(x);
 			setSquareY(y);
+			setScore1(score1);
+			setScore2(score2);
 		};
 
 		client.onerror = (error) => {
@@ -139,13 +143,17 @@ function New() {
 		if (clientRef.current && clientRef.current.readyState === clientRef.current.OPEN) {
 			// console.log('Sending paddleY:', paddleY);
 			// округлить paddle1Y до целого числа
-			clientRef.current.send(Math.round(paddle1Y)+','+Math.round(paddle2Y))
+			clientRef.current.send(Math.round(paddle1Y)+','+Math.round(paddle2Y));
 		}
 	}, [paddle1Y, paddle2Y]);
 
 	return (
 		<div>
-		<canvas ref={canvasRef} width={screen.w} height={screen.h} className='bg-white w-full h-auto'/>
+			<canvas ref={canvasRef} width={screen.w} height={screen.h} className='bg-white w-full h-auto'/>
+			<div className='flex justify-between pt-32 absolute text-5xl top-32 w-full opacity-50'>
+                <div className='flex-1 text-black text-center pt-24'>{score1}</div>
+                <div className='flex-1 text-black text-center pt-24'>{score2}</div>
+            </div>
 		</div>
 	);
 }

@@ -62,7 +62,7 @@ class TestConsumer(AsyncWebsocketConsumer):
 			self.ball_x += self.move_x
 
 			# prepare coordinates, {new_positions} and score
-			self.count = f"{self.ball_x},{self.ball_y},{self.score_1},{self.score_2}"
+			self.count = f"{self.ball_x},{self.ball_y},{self.raquet_1},{self.raquet_2},{self.score_1},{self.score_2}"
 
 			# send to websocket
 			await self.send(text_data=self.count)

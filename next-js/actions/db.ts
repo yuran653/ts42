@@ -1,32 +1,30 @@
 'use server'
 
+import { cookies } from 'next/headers'
+
 // import jwt_decode from 'jwt-decode'
 // import jwt, { JwtPayload } from 'jsonwebtoken'
 
-export const loginUser = async (username: string, password: string) => {
-	try {
-	  const response = await fetch('/api/token/', {
+export const signIn = async (username: string, password: string) => {
+
+	const response = await fetch('http://localhost:8000/api/token/', {
 		method: 'POST',
 		headers: {
-		  'Content-Type': 'application/json',
+			'Content-Type': 'application/json',
 		},
 		body: JSON.stringify({ username, password }),
 		credentials: 'include', // Включаем отправку и получение куки
-	  });
-  
-	  if (!response.ok) {
-		throw new Error(`HTTP error ${response.status}`);
-	  }
-  
-	  // Теперь мы получаем JWT-токен от бэкенда и сохраняем его в куки
-	  const { access_token } = await response.json();
-	  document.cookie = `access_token=${access_token}; path=/`;
-  
-	  return; // Больше не нужно возвращать декодированный JWT-токен
-	} catch (error) {
-	  console.error('Error logging in:', error);
-	  throw error;
+	});
+
+	if (!response.ok) {
+		throw Error(`HTTP error ${response.status}`);
 	}
+
+	// console.log('access_token:', access_token)
+	const access_token = await response.json();
+	cookies().set('access_token', access_token.access)
+	cookies().set('refresh_token', access_token.refresh)
+
   };
 	
 
@@ -70,7 +68,7 @@ export const loginUser = async (username: string, password: string) => {
 export const getUser = async (id: string) => {
 	try {
 	  const accessToken = getCookieValue('access_token');
-	  const response = await fetch(`http://localhost:8000/api/users/${id}`, {
+	  const response = await fetch(`http://localhost:8000/users/${id}`, {
 		headers: {
 		  'Authorization': `Bearer ${accessToken}`,
 		},

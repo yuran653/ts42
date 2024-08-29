@@ -6,7 +6,7 @@ import Settings from '@/components/Settings';
 import TopNav from '@/components/TopNav';
 import Tournaments from '@/components/Tournaments';
 import Link from 'next/link';
-import { signIn } from '@/actions/db';
+import { getUser, signIn } from '@/actions/db';
 import Game from '@/components/Game';
 
 export default function Home() {
@@ -19,6 +19,8 @@ export default function Home() {
 	const handleSignIn = async () => {
 		try {
 			await signIn(username, password)
+			// const res = await getUser('42')
+			// console.log('res:', res)
 			setIsLogged(true)
 		} catch (error) {
 			console.error('Error logging in:', error);

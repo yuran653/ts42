@@ -26,76 +26,101 @@ export const signIn = async (username: string, password: string) => {
 	cookies().set('refresh_token', access_token.refresh)
 
   };
+
+
+export const requestOtp = async (username: string, password: string) => {
+	// username is for salt here
 	
-
-// export const refreshToken = async () => {
-// 	try {
-// 	  const refreshToken = localStorage.getItem('refresh_token');
-// 	  const response = await fetch('/api/token/refresh/', {
-// 		method: 'POST',
-// 		headers: {
-// 		  'Content-Type': 'application/json',
-// 		},
-// 		body: JSON.stringify({ refresh: refreshToken }),
-// 	  });
-  
-// 	  if (!response.ok) {
-// 		throw new Error(`HTTP error ${response.status}`);
-// 	  }
-  
-// 	  const { access } = await response.json();
-// 	  localStorage.setItem('access_token', access);
-// 	  return jwt_decode(access);
-// 	} catch (error) {
-// 	  console.error('Error refreshing token:', error);
-// 	  throw error;
-// 	}
-//   };
-
-// export const getUser = async (id: string) => {
-//     try {
-//         const response = await fetch(`http://localhost:8000/users/${id}`);
-//         if (!response.ok) {
-//             throw new Error(`HTTP error ${response.status}`);
-//         }
-//         const data = await response.json();
-//         return data;
-//     } catch (error) {
-//         // console.error('Error: API', error);
-//         throw error;
-//     }
-// };
-export const getUser = async (id: string) => {
-	try {
-	  const accessToken = getCookieValue('access_token');
-	  const response = await fetch(`http://localhost:8000/users/${id}`, {
+	const response = await fetch('http://localhost:8000/api/token/', {
+		method: 'POST',
 		headers: {
-		  'Authorization': `Bearer ${accessToken}`,
+			'Content-Type': 'application/json',
 		},
+		body: JSON.stringify({ username, password }),
 		credentials: 'include', // Включаем отправку и получение куки
-	  });
-  
-	  if (!response.ok) {
-		throw new Error(`HTTP error ${response.status}`);
-	  }
-  
-	  const data = await response.json();
-	  return data;
+	});
+
+	if (!response.ok) {
+		throw Error(`HTTP error ${response.status}`);
+	}
+
+	const access_token = await response.json()
+	if (!access_token) {
+		console.error('Access token is empty or undefined');
+		throw new Error('Access token is empty or undefined');
+	}		
+
+	try {
+		const url = `http://localhost:8000/api/get-otp/`;
+		const response = await fetch(url, {
+			method: 'POST',
+			headers: {
+				'Authorization': `Bearer ${access_token.access}`,
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ username }),
+			credentials: 'include',
+		});
+		if (!response.ok) {
+			throw new Error(`HTTP error ${response.status}`);
+		}
+		const otpResponse = await response.json();
+		const otp = otpResponse[0];
+		console.log('data:', otp)
+
+		try {
+			const url = `http://localhost:8000/api/verify-otp/`;
+			const response = await fetch(url, {
+				method: 'POST',
+				headers: {
+					'Authorization': `Bearer ${access_token.access}`,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ username, otp }),
+				credentials: 'include',
+			});
+			if (!response.ok) {
+				throw new Error(`HTTP error ${response.status}`);
+			}
+			const data = await response.json();
+			console.log('data:', data)
+			// return data;
+		} catch (error) {
+			console.error('Error:', error);
+			throw error;
+		}
+
+		// return data;
 	} catch (error) {
-	  console.error('Error fetching user:', error);
-	  throw error;
+		console.error('Error:', error);
+		throw error;
 	}
-  };
-  
-  // Вспомогательная функция для получения значения куки
-  function getCookieValue(cookieName: string): string {
-	const cookies = document.cookie.split(';');
-	for (const cookie of cookies) {
-	  const [name, value] = cookie.trim().split('=');
-	  if (name === cookieName) {
-		return value;
-	  }
+
+};
+
+export const getUser = async (id: string) => {
+
+	const accessToken = cookies().get('access_token')
+	if (!accessToken) {
+		console.error('Access token is empty or undefined');
+		throw new Error('Access token is empty or undefined');
 	}
-	return '';
-  }
-  
+	try {
+		const url = `http://localhost:8000/games/`;
+		const response = await fetch(url, {
+			// method: 'POST',
+			headers: {
+				'Authorization': `Bearer ${accessToken.value}`,
+			},
+			credentials: 'include',
+		});
+		if (!response.ok) {
+			throw new Error(`HTTP error ${response.status}`);
+		}
+		const data = await response.json();
+		return data;
+	} catch (error) {
+		console.error('Error:', error);
+		throw error;
+	}
+};

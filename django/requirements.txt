@@ -28,3 +28,4 @@ typing_extensions==4.12.2
 whitenoise==6.7.0
 zope.interface==7.0.1
 djangorestframework-simplejwt==5.2.2
+requests==2.32.3

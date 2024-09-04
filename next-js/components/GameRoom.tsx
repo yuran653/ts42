@@ -55,30 +55,72 @@ function GameRoom({mode, players}: {mode: string, players: any}) {
 		};
 	  }, [handleKeyDown, handleKeyUp]);
 	  
-	  useEffect(() => {
-		setPaddle1Y((prevPaddle1Y) => {
-		  let newPaddle1Y = prevPaddle1Y;
-		  if (pressedKeys['q'] || pressedKeys['Q']) {
-			newPaddle1Y = Math.max(0 + paddleHeight / 2, newPaddle1Y - 5);
-		  }
-		  if (pressedKeys['a'] || pressedKeys['A']) {
-			newPaddle1Y = Math.min(screen.h - paddleHeight / 2, newPaddle1Y + 5);
-		  }
-		  return newPaddle1Y;
-		});
+	//   useEffect(() => {
+	// 	setPaddle1Y((prevPaddle1Y) => {
+	// 	  let newPaddle1Y = prevPaddle1Y;
+	// 	  if (pressedKeys['q'] || pressedKeys['Q']) {
+	// 		newPaddle1Y = Math.max(0 + paddleHeight / 2, newPaddle1Y - 5);
+	// 	  }
+	// 	  if (pressedKeys['a'] || pressedKeys['A']) {
+	// 		newPaddle1Y = Math.min(screen.h - paddleHeight / 2, newPaddle1Y + 5);
+	// 	  }
+	// 	  return newPaddle1Y;
+	// 	});
 	  
-		setPaddle2Y((prevPaddle2Y) => {
-		  let newPaddle2Y = prevPaddle2Y;
-		  if (pressedKeys['ArrowUp']) {
-			newPaddle2Y = Math.max(0 + paddleHeight / 2, newPaddle2Y - 5);
+	// 	setPaddle2Y((prevPaddle2Y) => {
+	// 	  let newPaddle2Y = prevPaddle2Y;
+	// 	  if (pressedKeys['ArrowUp']) {
+	// 		newPaddle2Y = Math.max(0 + paddleHeight / 2, newPaddle2Y - 5);
+	// 	  }
+	// 	  if (pressedKeys['ArrowDown']) {
+	// 		newPaddle2Y = Math.min(screen.h - paddleHeight / 2, newPaddle2Y + 5);
+	// 	  }
+	// 	  return newPaddle2Y;
+	// 	});
+	//   }, [pressedKeys, screen.h, paddleHeight]);
+	  
+	useEffect(() => {
+		let intervalId: ReturnType<typeof setInterval> | null = null;
+	  
+		const updatePaddle = () => {
+		  setPaddle1Y((prevPaddle1Y) => {
+			let newPaddle1Y = prevPaddle1Y;
+			if (pressedKeys['q'] || pressedKeys['Q']) {
+			  newPaddle1Y = Math.max(0 + paddleHeight / 2, newPaddle1Y - 5);
+			}
+			if (pressedKeys['a'] || pressedKeys['A']) {
+			  newPaddle1Y = Math.min(screen.h - paddleHeight / 2, newPaddle1Y + 5);
+			}
+			return newPaddle1Y;
+		  });
+	  
+		  setPaddle2Y((prevPaddle2Y) => {
+			let newPaddle2Y = prevPaddle2Y;
+			if (pressedKeys['ArrowUp']) {
+			  newPaddle2Y = Math.max(0 + paddleHeight / 2, newPaddle2Y - 5);
+			}
+			if (pressedKeys['ArrowDown']) {
+			  newPaddle2Y = Math.min(screen.h - paddleHeight / 2, newPaddle2Y + 5);
+			}
+			return newPaddle2Y;
+		  });
+		};
+	  
+		const startUpdatingPaddles = () => {
+		  intervalId = setInterval(updatePaddle, 16); // 16ms = 60 FPS
+		};
+	  
+		const stopUpdatingPaddles = () => {
+		  if (intervalId) {
+			clearInterval(intervalId);
+			intervalId = null;
 		  }
-		  if (pressedKeys['ArrowDown']) {
-			newPaddle2Y = Math.min(screen.h - paddleHeight / 2, newPaddle2Y + 5);
-		  }
-		  return newPaddle2Y;
-		});
+		};
+	  
+		startUpdatingPaddles();
+	  
+		return stopUpdatingPaddles;
 	  }, [pressedKeys, screen.h, paddleHeight]);
-	  
 
 	useEffect(() => {
 		const client = new W3CWebSocket('ws://localhost:8000/test/');

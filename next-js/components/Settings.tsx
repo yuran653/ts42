@@ -1,5 +1,5 @@
 
-import New from '@/components/Game';
+import New from '@/components/GameRoom';
 import TopNav from '@/components/TopNav';
 import Link from 'next/link';
 

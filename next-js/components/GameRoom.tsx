@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { w3cwebsocket as W3CWebSocket } from 'websocket';
 
-function Game() {
+function GameRoom({mode, players}: {mode: string, players: any}) {
 	const clientRef = useRef<W3CWebSocket | null>(null);
 	const canvasRef = useRef<HTMLCanvasElement | null>(null);
 	const contextRef = useRef<CanvasRenderingContext2D | null>(null);
@@ -56,25 +56,28 @@ function Game() {
 	  }, [handleKeyDown, handleKeyUp]);
 	  
 	  useEffect(() => {
-		let newPaddle1Y = paddle1Y;
-		let newPaddle2Y = paddle2Y;
+		setPaddle1Y((prevPaddle1Y) => {
+		  let newPaddle1Y = prevPaddle1Y;
+		  if (pressedKeys['q'] || pressedKeys['Q']) {
+			newPaddle1Y = Math.max(0 + paddleHeight / 2, newPaddle1Y - 5);
+		  }
+		  if (pressedKeys['a'] || pressedKeys['A']) {
+			newPaddle1Y = Math.min(screen.h - paddleHeight / 2, newPaddle1Y + 5);
+		  }
+		  return newPaddle1Y;
+		});
 	  
-		if (pressedKeys['q'] || pressedKeys['Q']) {
-		  newPaddle1Y = Math.max(0 + paddleHeight/2, newPaddle1Y - 0.1);
-		}
-		if (pressedKeys['a'] || pressedKeys['A']) {
-		  newPaddle1Y = Math.min(screen.h - paddleHeight/2, newPaddle1Y + 0.1);
-		}
-		if (pressedKeys['ArrowUp']) {
-		  newPaddle2Y = Math.max(0 + paddleHeight/2, newPaddle2Y - 0.1);
-		}
-		if (pressedKeys['ArrowDown']) {
-		  newPaddle2Y = Math.min(screen.h - paddleHeight/2, newPaddle2Y + 0.1);
-		}
-	  
-		setPaddle1Y(newPaddle1Y);
-		setPaddle2Y(newPaddle2Y);
-	  }, [pressedKeys, paddle1Y, paddle2Y, screen.h, paddleHeight]);
+		setPaddle2Y((prevPaddle2Y) => {
+		  let newPaddle2Y = prevPaddle2Y;
+		  if (pressedKeys['ArrowUp']) {
+			newPaddle2Y = Math.max(0 + paddleHeight / 2, newPaddle2Y - 5);
+		  }
+		  if (pressedKeys['ArrowDown']) {
+			newPaddle2Y = Math.min(screen.h - paddleHeight / 2, newPaddle2Y + 5);
+		  }
+		  return newPaddle2Y;
+		});
+	  }, [pressedKeys, screen.h, paddleHeight]);
 	  
 
 	useEffect(() => {
@@ -157,4 +160,4 @@ function Game() {
 	);
 }
 
-export default Game;
+export default GameRoom

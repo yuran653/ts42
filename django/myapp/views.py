@@ -39,7 +39,7 @@ def send_email(email, otp):
 		"from": "42_game <noreply@resend.dev>",
 		"to": [email],
 		"subject": "your otp code is here 🏆",
-		"html": f"<p>hello! your very otp code is: {otp}. enjoy</p>"
+		"html": f"<p>hello! your otp code is: {otp}. enjoy</p>"
 	}
 
 	response = requests.post(url, headers=headers, json=data)

@@ -1,11 +1,10 @@
-import Game from "@/components/Game";
-
+import MainGame from "@/components/MainGame"
 
 export default function Home() {
-
+	
 	return (
 		<>
-			<Game />
+			<MainGame />
 		</>
 	)
 }

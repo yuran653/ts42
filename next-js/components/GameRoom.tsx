@@ -126,7 +126,7 @@ function GameRoom({mode, players, scoresUpdate}: {mode: string, players: any, sc
 	  }, [pressedKeys, screen.h, paddleHeight]);
 
 	useEffect(() => {
-		const client = new W3CWebSocket('ws://localhost:8000/test/');
+		const client = new W3CWebSocket('wss://localhost/test/');
 
 		client.onopen = () => {
 			console.log('WebSocket Client Connected ✅');

@@ -6,7 +6,7 @@ function Ws() {
   const ws = useRef(null) as any;
 
   useEffect(() => {
-    ws.current = new WebSocket('ws://localhost:8000/ws/test/');
+    ws.current = new WebSocket('wss://localhost/ws/test/');
 
     ws.current.onmessage = (event: any) => {
       console.log('Received message:', event.data);

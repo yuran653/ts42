@@ -1,11 +1,13 @@
 services:
 
-  # nextjs:
-  #   build: ./next-js
-  #   ports:
-  #     - 3001:3000
+  nextjs:
+    container_name: t42-nextjs
+    build: ./next-js
+    ports:
+      - 3001:3000
 
   django:
+    container_name: t42-django
     build: ./django
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -13,6 +15,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - 8000:8000
+      
 
   # redis:
   #   image: redis:latest
@@ -20,6 +23,7 @@ services:
   #     - 6379:6379
 
   postgres:
+    container_name: t42-postgres
     build: ./postgres
     # restart: on-failure
     # container_name: postgres
@@ -30,7 +34,17 @@ services:
     volumes:
       - dbdata:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - 5432:5432
+    
+  nginx:
+    container_name: t42-nginx
+    build: ./nginx
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - nextjs
+      - django
 
 volumes:
   dbdata:

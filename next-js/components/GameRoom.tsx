@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { w3cwebsocket as W3CWebSocket } from 'websocket';
 
-function GameRoom({mode, players}: {mode: string, players: any}) {
+function GameRoom({mode, players, scoresUpdate}: {mode: string, players: any, scoresUpdate: any}) {
 	const clientRef = useRef<W3CWebSocket | null>(null);
 	const canvasRef = useRef<HTMLCanvasElement | null>(null);
 	const contextRef = useRef<CanvasRenderingContext2D | null>(null);
@@ -24,6 +24,7 @@ function GameRoom({mode, players}: {mode: string, players: any}) {
 		const context = contextRef.current;
 		if (canvas && context) {
 		context.clearRect(0, 0, canvas.width, canvas.height);
+		context.fillStyle = 'white';
 		context.fillRect(x, y, squareSize, squareSize);
 		// Рисуем ракетку
 		context.fillRect(0, paddle1Y - paddleHeight/2, paddleWidth, paddleHeight);
@@ -55,6 +56,7 @@ function GameRoom({mode, players}: {mode: string, players: any}) {
 		};
 	  }, [handleKeyDown, handleKeyUp]);
 	  
+	// working old logic with slight delay
 	//   useEffect(() => {
 	// 	setPaddle1Y((prevPaddle1Y) => {
 	// 	  let newPaddle1Y = prevPaddle1Y;
@@ -79,6 +81,7 @@ function GameRoom({mode, players}: {mode: string, players: any}) {
 	// 	});
 	//   }, [pressedKeys, screen.h, paddleHeight]);
 	  
+
 	useEffect(() => {
 		let intervalId: ReturnType<typeof setInterval> | null = null;
 	  
@@ -126,8 +129,8 @@ function GameRoom({mode, players}: {mode: string, players: any}) {
 		const client = new W3CWebSocket('ws://localhost:8000/test/');
 
 		client.onopen = () => {
-		console.log('WebSocket Client Connected ✅');
-		startUpdatingSquarePosition();
+			console.log('WebSocket Client Connected ✅');
+			startUpdatingSquarePosition();
 		};
 
 		const startUpdatingSquarePosition = () => {
@@ -141,11 +144,15 @@ function GameRoom({mode, players}: {mode: string, players: any}) {
 
 		client.onmessage = (message) => {
 			//   console.log('Received message:', message.data);
-			const [x, y, raquet_1, raquet_2, score1, score2] = (message.data as string).split(',').map(Number);
-			setSquareX(x);
-			setSquareY(y);
-			setScore1(score1);
-			setScore2(score2);
+			const [x, y, raquet_1, raquet_2, score1, score2] = (message.data as string).split(',').map(Number)
+			setSquareX(x)
+			setSquareY(y)
+			if (score1 == 30 || score2 == 30) {
+				scoresUpdate(score1, score2)
+				client.close()
+			}
+			setScore1(score1)
+			setScore2(score2)
 		};
 
 		client.onerror = (error) => {
@@ -176,28 +183,26 @@ function GameRoom({mode, players}: {mode: string, players: any}) {
 			client.close();
 			window.removeEventListener('keydown', handleKeyDown);
 		};
-	}, [handleKeyDown]);
+	}, [handleKeyDown, scoresUpdate]);
 
 	useEffect(() => {
 		drawSquare(squareX, squareY);
 	}, [squareX, squareY, drawSquare]);
 
 	useEffect(() => {
-		// Отправляем новую позицию ракетки на сервер
+		// Отправляем координаты ракеток на сервер
 		if (clientRef.current && clientRef.current.readyState === clientRef.current.OPEN) {
-			// console.log('Sending paddleY:', paddleY);
-			// округлить paddle1Y до целого числа
 			clientRef.current.send(Math.round(paddle1Y)+','+Math.round(paddle2Y));
 		}
 	}, [paddle1Y, paddle2Y]);
 
 	return (
-		<div>
-			<canvas ref={canvasRef} width={screen.w} height={screen.h} className='bg-white w-full h-auto'/>
-			<div className='flex justify-between pt-32 absolute text-5xl top-32 w-full opacity-50'>
-                <div className='flex-1 text-black text-center pt-24'>{score1}</div>
-                <div className='flex-1 text-black text-center pt-24'>{score2}</div>
-            </div>
+		<div className='flex flex-col h-screen items-center justify-center relative'>
+			<div className='flex w-full justify-center absolute top-0 h-screen items-center'>
+				<div className='flex-1 text-white text-center'>{score1}</div>
+				<div className='flex-1 text-white text-center'>{score2}</div>
+			</div>
+			<canvas ref={canvasRef} width={screen.w} height={screen.h} className='bg-black w-full h-full'/>
 		</div>
 	);
 }

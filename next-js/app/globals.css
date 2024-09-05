@@ -31,3 +31,39 @@ body {
     text-wrap: balance;
   }
 }
+
+@keyframes crt-flicker {
+	0%, 10%, 20%, 30%, 40%, 50%, 60%, 70%, 80%, 90%, 100% {
+	  opacity: 0.9;
+	}
+	5%, 25%, 45%, 65%, 85% {
+	  opacity: 0.85;
+	}
+	15%, 35%, 55%, 75%, 95% {
+	  opacity: 0.95;
+	}
+  }
+  
+  .crt-effect {
+	position: relative;
+	overflow: hidden;
+	animation: crt-flicker 2s infinite;
+  }
+  
+  .crt-effect::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: repeating-linear-gradient(
+	  to bottom,
+	  rgba(0, 0, 0, 0.5),
+	  rgba(0, 0, 0, 0.5) 1px,
+	  transparent 1px,
+	  transparent 2px
+	);
+	pointer-events: none;
+	z-index: 1;
+  }

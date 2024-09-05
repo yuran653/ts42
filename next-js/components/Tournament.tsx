@@ -2,65 +2,44 @@ import { useState } from "react";
 
 export default function Tournament({onResultsUpdate} : any) {
   const [tPlayers, setTPlayers] = useState<string[]>([])
-  const [tResults, setTResults] = useState<number[]>([])
+//   const [tResults, setTResults] = useState<number[]>([])
+  const [tStatus, setTStatus] = useState<string>('')
 
-  const handlePlayerNameChange = (index: number, name: string) => {
-    setTPlayers((prevPlayers) => {
-      const newTPlayers = [...prevPlayers]
+  const nameChange = (index: number, name: string) => {
+    setTPlayers((prevTPlayers) => {
+      const newTPlayers = [...prevTPlayers]
       newTPlayers[index] = name
       return newTPlayers
     })
-	setTResults((prevResults) => {
-		const newTResults = [...prevResults]
-		newTResults[index] = 1
-		return newTResults
-	})
+
   };
 
   const startTournament = () => {
-	onResultsUpdate(tPlayers, tResults)
+	onResultsUpdate(tPlayers, 'tournament_announ')
+	setTStatus('tournament_announce')
   }
 
   return (
     <div className="flex flex-col gap-4">
-      <h2>Tournament</h2>
-      <div>
-        <label>Player 1:</label>
-        <input
-          type="text"
-          value={tPlayers[0] || ""}
-          onChange={(e) => handlePlayerNameChange(0, e.target.value)}
-		  className="text-green-800"
-        />
-      </div>
-      <div>
-        <label>Player 2:</label>
-        <input
-          type="text"
-          value={tPlayers[1] || ""}
-          onChange={(e) => handlePlayerNameChange(1, e.target.value)}
-		  className="text-green-800"
-        />
-      </div>
-      <div>
-        <label>Player 3:</label>
-        <input
-          type="text"
-          value={tPlayers[2] || ""}
-          onChange={(e) => handlePlayerNameChange(2, e.target.value)}
-		  className="text-green-800"
-        />
-      </div>
-      <div>
-        <label>Player 4:</label>
-        <input
-          type="text"
-          value={tPlayers[3] || ""}
-          onChange={(e) => handlePlayerNameChange(3, e.target.value)}
-		  className="text-green-800"
-        />
-      </div>
-      <button onClick={startTournament}>Start Tournament</button>
+		{tStatus === 'tournament_announce' && <h2>Announce .... </h2>}
+		{tStatus === 'tournament_intro' && 
+		<>
+			<h2>Tournament</h2>
+			{[0, 1, 2, 3].map((index) => (
+				<div key={index}>
+					<label>Player {index + 1}:</label>
+					<input
+						type="text"
+						// value={tPlayers[index] || ""}
+						onChange={(e) => nameChange(index, e.target.value)}
+						className="text-green-800"
+					/>
+				</div>
+			))}
+		</>
+		}
+
+      	<button onClick={startTournament}>Start</button>
     </div>
   );
 }

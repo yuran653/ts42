@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { w3cwebsocket as W3CWebSocket } from 'websocket';
 
-function GameRoom({mode, players, scoresUpdate}: {mode: string, players: any, scoresUpdate: any}) {
+function GameRoom({mode, players, scoresUpdate}: {mode: number, players: any, scoresUpdate: any}) {
 	const clientRef = useRef<W3CWebSocket | null>(null);
 	const canvasRef = useRef<HTMLCanvasElement | null>(null);
 	const contextRef = useRef<CanvasRenderingContext2D | null>(null);
@@ -55,32 +55,7 @@ function GameRoom({mode, players, scoresUpdate}: {mode: string, players: any, sc
 		  window.removeEventListener('keyup', handleKeyUp);
 		};
 	  }, [handleKeyDown, handleKeyUp]);
-	  
-	// working old logic with slight delay
-	//   useEffect(() => {
-	// 	setPaddle1Y((prevPaddle1Y) => {
-	// 	  let newPaddle1Y = prevPaddle1Y;
-	// 	  if (pressedKeys['q'] || pressedKeys['Q']) {
-	// 		newPaddle1Y = Math.max(0 + paddleHeight / 2, newPaddle1Y - 5);
-	// 	  }
-	// 	  if (pressedKeys['a'] || pressedKeys['A']) {
-	// 		newPaddle1Y = Math.min(screen.h - paddleHeight / 2, newPaddle1Y + 5);
-	// 	  }
-	// 	  return newPaddle1Y;
-	// 	});
-	  
-	// 	setPaddle2Y((prevPaddle2Y) => {
-	// 	  let newPaddle2Y = prevPaddle2Y;
-	// 	  if (pressedKeys['ArrowUp']) {
-	// 		newPaddle2Y = Math.max(0 + paddleHeight / 2, newPaddle2Y - 5);
-	// 	  }
-	// 	  if (pressedKeys['ArrowDown']) {
-	// 		newPaddle2Y = Math.min(screen.h - paddleHeight / 2, newPaddle2Y + 5);
-	// 	  }
-	// 	  return newPaddle2Y;
-	// 	});
-	//   }, [pressedKeys, screen.h, paddleHeight]);
-	  
+	
 
 	useEffect(() => {
 		let intervalId: ReturnType<typeof setInterval> | null = null;
@@ -119,14 +94,12 @@ function GameRoom({mode, players, scoresUpdate}: {mode: string, players: any, sc
 			intervalId = null;
 		  }
 		};
-	  
-		startUpdatingPaddles();
-	  
+		startUpdatingPaddles();	  
 		return stopUpdatingPaddles;
 	  }, [pressedKeys, screen.h, paddleHeight]);
 
 	useEffect(() => {
-		const client = new W3CWebSocket('wss://localhost/test/');
+		const client = new W3CWebSocket('wss://localhost/ws/');
 
 		client.onopen = () => {
 			console.log('WebSocket Client Connected ✅');
@@ -147,7 +120,7 @@ function GameRoom({mode, players, scoresUpdate}: {mode: string, players: any, sc
 			const [x, y, raquet_1, raquet_2, score1, score2] = (message.data as string).split(',').map(Number)
 			setSquareX(x)
 			setSquareY(y)
-			if (score1 == 30 || score2 == 30) {
+			if (score1 == 3 || score2 == 3) {
 				scoresUpdate(score1, score2)
 				client.close()
 			}

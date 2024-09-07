@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -33,14 +33,23 @@ export default function Home() {
 
     return (
         <div className='gap-4 flex flex-col w-96 mx-auto py-4'>
-			 <div className='gap-2 flex flex-col'>
-				<Link href='/game-keyboard' className='hover:opacity-70'>1-1 game</Link>
-				<Link href='/game-ai' className='hover:opacity-70'>1-1 game w/ai</Link>
-				<Link href='/tournament' className='hover:opacity-70'>tournament</Link>
-				<Link href='/game-remote' className='hover:opacity-70'>1-1 remote game</Link>
-				<Link href='/settings' className='hover:opacity-70'>settings</Link>
-				<Link href='#' onClick={() => handleSignOut()} className='hover:opacity-70'>exit</Link>
-        	</div>
-		</div>
+
+			<div className='mx-auto gap-3 flex flex-col'>
+				<div className='flex flex-row items-center'>
+					<label className='w-1/2'>Email: </label>
+					<input className='w-1/2 text-black px-2 py-1' type="text"  value={username} onChange={(e) => setUsername(e.target.value)} />
+				</div>	
+				<div className='flex flex-row items-center'>
+					<label className='w-1/2'>Password: </label>
+					<input className='w-1/2 text-black px-2 py-1' type="password"  value={password} onChange={(e) => setPassword(e.target.value)} />
+				</div>
+				<button onClick={handleSignIn} className='border-2 py-2 px-4 mt-4 opacity-100 text-sm mx-auto'>Sign in</button>
+			</div>
+
+			<div>new user? 
+				<Link href='/signup' className='hover:opacity-70'> sign up</Link>
+			</div>
+
+        </div>
     )
 }

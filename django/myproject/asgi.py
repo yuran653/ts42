@@ -27,8 +27,8 @@ application = ProtocolTypeRouter({
   "http": get_asgi_application(),
   "websocket": URLRouter(
         [
-			re_path(r'test/(?P<room_name>\w+)/$', TestConsumer.as_asgi()),
-			re_path(r'test/$', TestConsumer.as_asgi()),
+			re_path(r'ws/(?P<room_name>\w+)/$', TestConsumer.as_asgi()),
+			re_path(r'ws/$', TestConsumer.as_asgi()),
         ]
     ),
 })

@@ -20,7 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en">
 		{/* can add crt-effect style */}
-      <body className={`uppercas text ${pressStart2P.className} px-4 bg-black`}>
+      <body className={`uppercas text-sm ${pressStart2P.className} px-4 bg-black uppercase`}>
         {children}
       </body>
     </html>

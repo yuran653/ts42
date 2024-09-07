@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Games
+from .models import Games, Image
 from django.contrib.auth.models import User
 
 # class UserSerializer(serializers.ModelSerializer):
@@ -19,6 +19,11 @@ class GameSerializer(serializers.ModelSerializer):
 		model = Games
 		fields = ['id', 'user_one_id', 'user_two_id', 'user_one_score', 'user_two_score', 'created_at', 'updated_at', 'status']
 	
+class ImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Image
+        fields = ('id', 'image', 'uploaded_at')
+
 class OTPRequestSerializer(serializers.Serializer):
 	username = serializers.CharField()
 

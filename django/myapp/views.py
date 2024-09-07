@@ -15,6 +15,11 @@ from django.core.cache import cache
 from .serializers import OTPRequestSerializer, OTPVerifySerializer
 import requests
 
+# image upload
+from rest_framework.parsers import MultiPartParser, FormParser
+from .models import Image
+from .serializers import ImageSerializer
+
 
 class UserCreateView(generics.CreateAPIView):
 	queryset = User.objects.all()
@@ -48,6 +53,12 @@ def send_email(email, otp):
 	else:
 		print(f'Failed to send email: {response.status_code}')
 		print(response.text)
+
+# image upload
+class ImageViewSet(viewsets.ModelViewSet):
+    queryset = Image.objects.all()
+    serializer_class = ImageSerializer
+    parser_classes = (MultiPartParser, FormParser)
 
 class GetOTPView(APIView):
 	# permission_classes = [AllowAny]  # Разрешить доступ без аутентификации

@@ -57,12 +57,15 @@ class TestConsumer(AsyncWebsocketConsumer):
 			if self.ball_y >= self.screen_height or self.ball_y <= 0:
 				self.move_y *= -1
 
-
 			self.ball_y += self.move_y
 			self.ball_x += self.move_x
+			# Lock ball_x and ball_y within their respective intervals
+			self.ball_x = max(0, min(self.ball_x, self.screen_width))
+			self.ball_y = max(0, min(self.ball_y, self.screen_height))
+
 
 			# prepare coordinates, {new_positions} and score
-			self.count = f"{self.ball_x},{self.ball_y},{self.raquet_1},{self.raquet_2},{self.score_1},{self.score_2}"
+			self.count = f"{self.ball_x},{self.ball_y},{self.move_x},{self.move_y},{self.raquet_1},{self.raquet_2},{self.score_1},{self.score_2}"
 
 			# send to websocket
 			await self.send(text_data=self.count)

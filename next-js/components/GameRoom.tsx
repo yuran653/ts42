@@ -9,15 +9,130 @@ function GameRoom({mode, players, scoresUpdate}: {mode: number, players: any, sc
 	const contextRef = useRef<CanvasRenderingContext2D | null>(null);
 	const [squareX, setSquareX] = useState(0);
 	const [squareY, setSquareY] = useState(0);
+    const [velocityX, setVelocityX] = useState(0);
+    const [velocityY, setVelocityY] = useState(0);
 	const [score1, setScore1] = useState(0);
 	const [score2, setScore2] = useState(0);
 	const [paddle1Y, setPaddle1Y] = useState(200); // Начальная позиция ракетки
 	const [paddle2Y, setPaddle2Y] = useState(200); // Начальная позиция ракетки
-	const squareSize = 2;
+	const squareSize = 3;
 	const paddleWidth = 2;
 	const paddleHeight = 50;
 	const screen = { w: 780, h: 400 }
 	const [pressedKeys, setPressedKeys] = useState<{ [key: string]: boolean }>({});
+
+    // ======= AI Logic variables =======
+    const [aiX, setAiX] = useState(screen.w / 2);
+    const [aiY, setAiY] = useState(screen.h / 2);
+    const aiXRef = useRef(squareX);
+    const aiYRef = useRef(squareY);
+    const [aiVelocityX, setAiVelocityX] = useState(0);
+    const [aiVelocityY, setAiVelocityY] = useState(0);
+    const aiVelocityXRef = useRef(velocityX);
+    const aiVelocityYRef = useRef(velocityY);
+    const [predictedY, setPredictedY] = useState(Math.round(screen.h / 2));
+    // State for keyboard presses emulation
+    const [aiKeys, setAiKeys] = useState<{ up: boolean; down: boolean }>({ up: false, down: false });
+    // ======= End of AI Logic variables =======
+
+    // ====== AI Logic ======
+
+    // Effect to update the refs when the ball's position changes
+    useEffect(() => {
+        aiXRef.current = squareX;
+        aiYRef.current = squareY;
+        aiVelocityXRef.current = velocityX;
+        aiVelocityYRef.current = velocityY;
+    }, [squareX, squareY]);
+
+    // Effect to handle AI view updates at regular intervals
+    useEffect(() => {
+        const updateAIView = () => {
+            // Update AI state with the current ball positions and velocity
+            setAiX(aiXRef.current);
+            setAiY(aiYRef.current);
+            setAiVelocityX(aiVelocityXRef.current);
+            setAiVelocityY(aiVelocityYRef.current);
+        };
+        // Set an interval to update AI's view every 1 second
+        const intervalId = setInterval(updateAIView, 1000);
+        // Cleanup function to clear the interval when the component unmounts
+        return () => clearInterval(intervalId);
+    }, []);
+
+    useEffect(() => {
+        const updateAIPaddle = () => {
+            if (velocityX < 0 && velocityX !== 0 && velocityY !== 0 && aiX < screen.w * 0.95) {
+                // Calculate the time it takes for the ball to reach the AI's paddle
+                const distanceToPaddleX = aiX - paddleWidth;
+                const timeToReach = distanceToPaddleX / -aiVelocityX;
+                // Calculate the unnormalized Y position of the ball when it reaches the paddle
+                let unNormalizedY = Math.round(aiY + aiVelocityY * timeToReach);
+                // Normalize the Y position to handle rebounds
+                if (unNormalizedY < 0 || unNormalizedY > screen.h) {
+                    let normalizedY = unNormalizedY % (2 * screen.h);
+                    // If normalizedY is negative, adjust it to be within the bounds
+                    if (normalizedY < 0) {
+                        normalizedY += 2 * screen.h;
+                    }
+                    const distance = Math.round(aiX / 50);
+                    setPredictedY(
+                        Math.max(0, Math.min(
+                            (normalizedY > screen.h ? 
+                            (2 * screen.h - normalizedY) : normalizedY)
+                        + Math.round((Math.random() * distance - distance / 2) * 10),
+                        screen.h))
+                    );
+                }
+            } else {
+                setPredictedY((Math.round(screen.h / 2)));
+            }
+        };
+        updateAIPaddle();
+    }, [aiX, aiY, aiVelocityX, aiVelocityY]);
+
+    // Effect to handle key's presses
+    useEffect(() => {
+        const inaccuracy = Math.floor(Math.random() * 16) + 10;
+        if (Math.abs(predictedY - paddle1Y) < inaccuracy) {
+            setAiKeys({ up: false, down: false });
+        } else {
+            setAiKeys({
+                up: predictedY < paddle1Y,
+                down: predictedY > paddle1Y,
+            });
+        }
+    }, [predictedY, paddle1Y]);
+
+    // Display the AI info
+    const aiInfo = () => {
+        let aiInfoDiv = document.getElementById('ai-info');
+        if (!aiInfoDiv) {
+            aiInfoDiv = document.createElement('div');
+            aiInfoDiv.id = 'ai-info';
+            aiInfoDiv.style.position = 'absolute';
+            aiInfoDiv.style.top = '10px';
+            aiInfoDiv.style.left = '50px';
+            aiInfoDiv.style.color = 'white';
+            aiInfoDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            aiInfoDiv.style.padding = '5px';
+            document.body.appendChild(aiInfoDiv);
+        }
+        aiInfoDiv.innerHTML = `
+            AI X: ${aiX}<br>
+            AI Y: ${aiY}<br>
+            Velocity X: ${aiVelocityX}<br>
+            Velocity Y: ${aiVelocityY}<br>
+            Predicted Y: ${predictedY}
+        `;
+    };
+    
+    // Effect to update display of the AI info
+    useEffect(() => {
+        aiInfo(); // Call this function independently to update the display
+    }, [aiX, aiY, aiVelocityX, aiVelocityY, predictedY]); // Ensure it runs when any of these variables change
+
+    // ====== End of AI Logic ======
 
 	const drawSquare = useCallback((x: number, y: number) => {
 		const canvas = canvasRef.current;
@@ -30,7 +145,7 @@ function GameRoom({mode, players, scoresUpdate}: {mode: number, players: any, sc
 		context.fillRect(0, paddle1Y - paddleHeight/2, paddleWidth, paddleHeight);
 		context.fillRect(screen.w-paddleWidth, paddle2Y - paddleHeight/2, paddleWidth, paddleHeight);
 		}
-	}, [squareSize, paddle1Y, paddle2Y, screen.w]);
+	}, [paddle1Y, paddle2Y]);
 
 	const handleKeyDown = useCallback((event: KeyboardEvent) => {
 		setPressedKeys((prevKeys) => ({
@@ -61,17 +176,27 @@ function GameRoom({mode, players, scoresUpdate}: {mode: number, players: any, sc
 		let intervalId: ReturnType<typeof setInterval> | null = null;
 	  
 		const updatePaddle = () => {
-		  setPaddle1Y((prevPaddle1Y) => {
-			let newPaddle1Y = prevPaddle1Y;
-			if (pressedKeys['q'] || pressedKeys['Q']) {
-			  newPaddle1Y = Math.max(0 + paddleHeight / 2, newPaddle1Y - 5);
-			}
-			if (pressedKeys['a'] || pressedKeys['A']) {
-			  newPaddle1Y = Math.min(screen.h - paddleHeight / 2, newPaddle1Y + 5);
-			}
-			return newPaddle1Y;
-		  });
-	  
+		//   setPaddle1Y((prevPaddle1Y) => {
+		// 	let newPaddle1Y = prevPaddle1Y;
+		// 	if (pressedKeys['q'] || pressedKeys['Q']) {
+		// 	  newPaddle1Y = Math.max(0 + paddleHeight / 2, newPaddle1Y - 5);
+		// 	}
+		// 	if (pressedKeys['a'] || pressedKeys['A']) {
+		// 	  newPaddle1Y = Math.min(screen.h - paddleHeight / 2, newPaddle1Y + 5);
+		// 	}
+		// 	return newPaddle1Y;
+		//   });
+            setPaddle1Y((prevPaddle1Y) => {
+                let newPaddle1Y = prevPaddle1Y;
+                if (aiKeys.up) {
+                    newPaddle1Y = Math.max(0 + paddleHeight / 2, newPaddle1Y - 5);
+                }
+                if (aiKeys.down) {
+                    newPaddle1Y = Math.min(screen.h - paddleHeight / 2, newPaddle1Y + 5);
+                }
+                return newPaddle1Y;
+            });
+
 		  setPaddle2Y((prevPaddle2Y) => {
 			let newPaddle2Y = prevPaddle2Y;
 			if (pressedKeys['ArrowUp']) {
@@ -96,7 +221,7 @@ function GameRoom({mode, players, scoresUpdate}: {mode: number, players: any, sc
 		};
 		startUpdatingPaddles();	  
 		return stopUpdatingPaddles;
-	  }, [pressedKeys, screen.h, paddleHeight]);
+	  }, [pressedKeys, aiKeys]);
 
 	useEffect(() => {
 		const client = new W3CWebSocket('wss://localhost/ws/');
@@ -117,10 +242,12 @@ function GameRoom({mode, players, scoresUpdate}: {mode: number, players: any, sc
 
 		client.onmessage = (message) => {
 			//   console.log('Received message:', message.data);
-			const [x, y, raquet_1, raquet_2, score1, score2] = (message.data as string).split(',').map(Number)
+			const [x, y, move_x, move_y, raquet_1, raquet_2, score1, score2] = (message.data as string).split(',').map(Number)
 			setSquareX(x)
 			setSquareY(y)
-			if (score1 == 3 || score2 == 3) {
+            setVelocityX(move_x);
+            setVelocityY(move_y);
+			if (score1 ==20 || score2 == 20) {
 				scoresUpdate(score1, score2)
 				client.close()
 			}
@@ -169,7 +296,7 @@ function GameRoom({mode, players, scoresUpdate}: {mode: number, players: any, sc
 		}
 	}, [paddle1Y, paddle2Y]);
 
-	return (
+  	return (
 		<div className='flex flex-col h-screen items-center justify-center relative'>
 			<div className='flex w-full justify-center absolute top-0 h-screen items-center'>
 				<div className='flex-1 text-white text-center'>{score1}</div>
